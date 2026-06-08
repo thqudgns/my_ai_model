@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pose Detector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0f1e;
+      font-family: 'Share Tech Mono', monospace;
+      color: #00f5ff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 24px;
+    }
+    .wrapper {
+      background: #0a0f1e;
+      border-radius: 16px;
+      padding: 24px;
+      width: 100%;
+      max-width: 800px;
+    }
+    h1 {
+      font-size: 22px;
+      color: #00f5ff;
+      text-align: center;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #00f5ff44;
+      padding-bottom: 12px;
+    }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .cam-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    #canvas {
+      border: 2px solid #00f5ff;
+      border-radius: 8px;
+      background: #0a1a2e;
+      display: block;
+    }
+    .start-btn {
+      background: #0d2a1a;
+      color: #39ff14;
+      border: 2px solid #39ff14;
+      border-radius: 8px;
+      padding: 10px 32px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 16px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    .start-btn:hover { background: #1a4a2a; }
+    #label-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+    #label-container > div {
+      background: #0a1a2e;
+      border: 1px solid #00f5ff55;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 15px;
+      color: #00f5ff;
+      letter-spacing: 1px;
+    }
+    .status-bar {
+      font-size: 12px;
+      color: #39ff1488;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .help-title {
+      color: #39ff14;
+      font-size: 14px;
+      letter-spacing: 2px;
+      border-bottom: 1px solid #39ff1444;
+      padding-bottom: 6px;
+    }
+    .pose-card {
+      background: #071428;
+      border: 1px solid #39ff1444;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .pose-icon { font-size: 28px; line-height: 1; flex-shrink: 0; }
+    .pose-name {
+      font-size: 14px;
+      color: #39ff14;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .pose-desc {
+      font-size: 12px;
+      color: #7ec8cc;
+      line-height: 1.5;
+      font-family: sans-serif;
+      letter-spacing: 0;
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <h1>⬡ POSE DETECTOR</h1>
+  <div class="main-grid">
+    <div class="cam-section">
+      <canvas id="canvas" width="200" height="200"></canvas>
+      <button class="start-btn" onclick="init()">▶ 시작</button>
+      <div id="label-container"></div>
+      <div class="status-bar" id="status">카메라 대기 중...</div>
+    </div>
+    <div class="right-panel">
+      <div class="help-title">◈ 포즈 도움말</div>
+      <div class="pose-card">
+        <div class="pose-icon">🧍</div>
+        <div>
+          <div class="pose-name">기본 자세 (Standing)</div>
+          <div class="pose-desc">등을 곧게 펴고 카메라 정면을 바라보며 자연스럽게 서 있는 자세입니다. 양손은 옆에 가볍게 붙이세요.</div>
+        </div>
+      </div>
+      <div class="pose-card">
+        <div class="pose-icon">🙆</div>
+        <div>
+          <div class="pose-name">양팔 들기 (Arms Up)</div>
+          <div class="pose-desc">양팔을 머리 위로 들어 Y자 형태를 만드세요. 팔꿈치와 손목 키포인트가 잘 보여야 합니다.</div>
+        </div>
+      </div>
+      <div class="pose-card">
+        <div class="pose-icon">🤸</div>
+        <div>
+          <div class="pose-name">옆으로 기울기 (Side Lean)</div>
+          <div class="pose-desc">상체를 왼쪽 또는 오른쪽으로 기울여 사선 자세를 취합니다. 어깨 키포인트 높이 차이로 인식됩니다.</div>
+        </div>
+      </div>
+      <div class="pose-card">
+        <div class="pose-icon">💡</div>
+        <div>
+          <div class="pose-name">촬영 팁</div>
+          <div class="pose-desc">전신이 프레임 안에 들어오도록 카메라와 1~2m 거리를 유지하고, 밝은 조명 환경에서 사용하세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
+<script>
+  const URL = "https://teachablemachine.withgoogle.com/models/DYznFXqDRW/";
+  let model, webcam, ctx, labelContainer, maxPredictions;
+
+  async function init() {
+    document.getElementById('status').textContent = '모델 로딩 중...';
+    const modelURL = URL + "model.json";
+    const metadataURL = URL + "metadata.json";
+
+    model = await tmPose.load(modelURL, metadataURL);
+    maxPredictions = model.getTotalClasses();
+
+    const size = 200;
+    webcam = new tmPose.Webcam(size, size, true);
+    await webcam.setup();
+    await webcam.play();
+    window.requestAnimationFrame(loop);
+
+    const canvas = document.getElementById("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    ctx = canvas.getContext("2d");
+
+    labelContainer = document.getElementById("label-container");
+    labelContainer.innerHTML = '';
+    for (let i = 0; i < maxPredictions; i++) {
+      labelContainer.appendChild(document.createElement("div"));
+    }
+    document.getElementById('status').textContent = '인식 중...';
+  }
+
+  async function loop() {
+    webcam.update();
+    await predict();
+    window.requestAnimationFrame(loop);
+  }
+
+  async function predict() {
+    const { pose, posenetOutput } = await model.estimatePose(webcam.canvas);
+    const prediction = await model.predict(posenetOutput);
+
+    for (let i = 0; i < maxPredictions; i++) {
+      const prob = (prediction[i].probability * 100).toFixed(1);
+      const bar = Math.round(prediction[i].probability * 12);
+      const filled = '█'.repeat(bar) + '░'.repeat(12 - bar);
+      labelContainer.childNodes[i].innerHTML =
+        `<span style="color:#39ff14">${prediction[i].className}</span> ` +
+        `<span style="color:#7ec8cc; font-size:12px">${filled} ${prob}%</span>`;
+    }
+    drawPose(pose);
+  }
+
+  function drawPose(pose) {
+    if (webcam.canvas) {
+      ctx.drawImage(webcam.canvas, 0, 0);
+      if (pose) {
+        const minConf = 0.5;
+        tmPose.drawKeypoints(pose.keypoints, minConf, ctx);
+        tmPose.drawSkeleton(pose.keypoints, minConf, ctx);
+      }
+    }
+  }
+</script>
+</body>
+</html>
