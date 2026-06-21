@@ -1,205 +1,236 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pose Detector</title>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: #0a0f1e;
-      font-family: 'Share Tech Mono', monospace;
-      color: #00f5ff;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 24px;
-    }
-    .wrapper {
-      background: #0a0f1e;
-      border-radius: 16px;
-      padding: 24px;
-      width: 100%;
-      max-width: 800px;
-    }
-    h1 {
-      font-size: 22px;
-      color: #00f5ff;
-      text-align: center;
-      letter-spacing: 2px;
-      margin-bottom: 20px;
-      border-bottom: 1px solid #00f5ff44;
-      padding-bottom: 12px;
-    }
-    .main-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      align-items: start;
-    }
-    .cam-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-    }
-    #canvas {
-      border: 2px solid #00f5ff;
-      border-radius: 8px;
-      background: #0a1a2e;
-      display: block;
-    }
-    .start-btn {
-      background: #0d2a1a;
-      color: #39ff14;
-      border: 2px solid #39ff14;
-      border-radius: 8px;
-      padding: 10px 32px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 16px;
-      cursor: pointer;
-      letter-spacing: 2px;
-      width: 100%;
-      transition: background 0.2s;
-    }
-    .start-btn:hover { background: #1a4a2a; }
-    #label-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: 100%;
-    }
-    #label-container > div {
-      background: #0a1a2e;
-      border: 1px solid #00f5ff55;
-      border-radius: 6px;
-      padding: 8px 12px;
-      font-size: 15px;
-      color: #00f5ff;
-      letter-spacing: 1px;
-    }
-    .status-bar {
-      font-size: 12px;
-      color: #39ff1488;
-      text-align: center;
-      letter-spacing: 1px;
-    }
-    .right-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .help-title {
-      color: #39ff14;
-      font-size: 14px;
-      letter-spacing: 2px;
-      border-bottom: 1px solid #39ff1444;
-      padding-bottom: 6px;
-    }
-    .pose-card {
-      background: #071428;
-      border: 1px solid #39ff1444;
-      border-radius: 8px;
-      padding: 12px 14px;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    .pose-icon { font-size: 28px; line-height: 1; flex-shrink: 0; }
-    .pose-name {
-      font-size: 14px;
-      color: #39ff14;
-      letter-spacing: 1px;
-      margin-bottom: 4px;
-    }
-    .pose-desc {
-      font-size: 12px;
-      color: #7ec8cc;
-      line-height: 1.5;
-      font-family: sans-serif;
-      letter-spacing: 0;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 집중 도우미 - 핸드폰 감지</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    background: #141414;
+    color: #e8e8e8;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .container {
+    display: flex;
+    gap: 48px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1200px;
+    width: 100%;
+  }
+
+  /* ===== 왼쪽: 웹캠 ===== */
+  .cam-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .cam-frame {
+    width: 360px;
+    height: 280px;
+    border-radius: 18px;
+    border: 6px solid #2a2a2a;
+    background: #000;
+    overflow: hidden;
+    box-shadow: 0 0 60px 8px rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: box-shadow 0.4s ease;
+  }
+
+  .cam-frame canvas,
+  .cam-frame video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cam-label {
+    font-size: 14px;
+    color: #888;
+  }
+
+  /* ===== 오른쪽: 상태 ===== */
+  .status-section {
+    flex: 1;
+    min-width: 320px;
+    max-width: 520px;
+    text-align: center;
+  }
+
+  .status-main {
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1.15;
+    transition: all 0.4s ease;
+  }
+
+  .status-desc {
+    margin-top: 16px;
+    font-size: 15px;
+    color: #999;
+  }
+
+  .divider {
+    height: 1px;
+    background: #333;
+    margin: 32px 0;
+  }
+
+  /* 집중 중 (핸드폰 없음) */
+  .good .status-main {
+    color: #9ff5b8;
+    text-shadow: 0 0 30px rgba(80, 230, 130, 0.55);
+  }
+  .good .cam-frame {
+    box-shadow: 0 0 60px 8px rgba(80, 230, 130, 0.18);
+  }
+
+  /* 경고 (핸드폰 감지) */
+  .warn-banner {
+    background: #3a1414;
+    border: 1px solid #7a2020;
+    border-radius: 12px;
+    padding: 22px;
+    font-size: 28px;
+    font-weight: 800;
+    color: #ff5a5a;
+  }
+  .warn .warn-banner {
+    animation: flash 0.7s infinite;
+  }
+  .warn .cam-frame {
+    box-shadow: 0 0 70px 10px rgba(255, 60, 60, 0.35);
+  }
+
+  @keyframes flash {
+    0%, 100% { background: #3a1414; color: #ff5a5a; }
+    50%      { background: #6e1f1f; color: #ffb0b0; }
+  }
+
+  /* 시작 버튼 */
+  .start-btn {
+    margin-top: 28px;
+    padding: 14px 36px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #141414;
+    background: #9ff5b8;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+  .start-btn:hover { transform: scale(1.04); }
+  .start-btn:disabled { opacity: 0.4; cursor: default; }
+
+  .confidence {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #666;
+  }
+
+  @media (max-width: 720px) {
+    .status-main { font-size: 40px; }
+  }
+</style>
 </head>
 <body>
-<div class="wrapper">
-  <h1>⬡ POSE DETECTOR</h1>
-  <div class="main-grid">
-    <div class="cam-section">
-      <canvas id="canvas" width="200" height="200"></canvas>
-      <button class="start-btn" onclick="init()">▶ 시작</button>
-      <div id="label-container"></div>
-      <div class="status-bar" id="status">카메라 대기 중...</div>
+
+<div class="container good" id="root">
+
+  <!-- 왼쪽: 웹캠 -->
+  <div class="cam-section">
+    <div class="cam-frame" id="camFrame">
+      <div id="webcam-container"></div>
     </div>
-    <div class="right-panel">
-      <div class="help-title">◈ 포즈 도움말</div>
-      <div class="pose-card">
-        <div class="pose-icon">🧍</div>
-        <div>
-          <div class="pose-name">기본 자세 (Standing)</div>
-          <div class="pose-desc">등을 곧게 펴고 카메라 정면을 바라보며 자연스럽게 서 있는 자세입니다. 양손은 옆에 가볍게 붙이세요.</div>
-        </div>
-      </div>
-      <div class="pose-card">
-        <div class="pose-icon">🙆</div>
-        <div>
-          <div class="pose-name">양팔 들기 (Arms Up)</div>
-          <div class="pose-desc">양팔을 머리 위로 들어 Y자 형태를 만드세요. 팔꿈치와 손목 키포인트가 잘 보여야 합니다.</div>
-        </div>
-      </div>
-      <div class="pose-card">
-        <div class="pose-icon">🤸</div>
-        <div>
-          <div class="pose-name">옆으로 기울기 (Side Lean)</div>
-          <div class="pose-desc">상체를 왼쪽 또는 오른쪽으로 기울여 사선 자세를 취합니다. 어깨 키포인트 높이 차이로 인식됩니다.</div>
-        </div>
-      </div>
-      <div class="pose-card">
-        <div class="pose-icon">💡</div>
-        <div>
-          <div class="pose-name">촬영 팁</div>
-          <div class="pose-desc">전신이 프레임 안에 들어오도록 카메라와 1~2m 거리를 유지하고, 밝은 조명 환경에서 사용하세요.</div>
-        </div>
-      </div>
-    </div>
+    <div class="cam-label">Webcam Feed</div>
+    <button class="start-btn" id="startBtn" onclick="init()">▶ 시작하기</button>
   </div>
+
+  <!-- 오른쪽: 상태 -->
+  <div class="status-section">
+    <!-- 집중 중 상태 -->
+    <div id="goodBox">
+      <div class="status-main">AI Helper Active:<br>Focusing...</div>
+      <div class="status-desc">집중하고 있어요. 책상 위에 핸드폰이 없습니다.</div>
+    </div>
+
+    <!-- 경고 상태 -->
+    <div id="warnBox" style="display:none;">
+      <div class="status-main" style="color:#ff5a5a; text-shadow:0 0 30px rgba(255,60,60,0.5);">Warning!</div>
+      <div class="divider"></div>
+      <div class="warn-banner">⚠ Warning: Smartphone Detected!</div>
+      <div class="status-desc">책상 위에 핸드폰이 감지되었습니다. 치워주세요!</div>
+    </div>
+
+    <div class="confidence" id="confidence"></div>
+  </div>
+
 </div>
 
+<!-- Teachable Machine 라이브러리 -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+
 <script>
-  const URL = "https://teachablemachine.withgoogle.com/models/DYznFXqDRW/";
-  let model, webcam, ctx, labelContainer, maxPredictions;
+  // ===== 모델 주소 =====
+  const URL = "https://teachablemachine.withgoogle.com/models/K_zVa4oex/";
+
+  // ===== 후처리 설정 (여기 숫자만 바꾸면 민감도 조절됨) =====
+  const PHONE_CLASS   = "phone";  // 핸드폰 클래스 이름
+  const WINDOW_SIZE   = 10;       // 시계열: 최근 몇 프레임을 평균낼지
+  const ENTER_THRESH  = 0.75;     // 평균 확률이 이 값을 넘으면 → 경고 ON
+  const EXIT_THRESH   = 0.55;     // 평균 확률이 이 값 아래로 내려가면 → 경고 OFF
+  // (ENTER > EXIT 으로 차이를 둬서 경계에서 깜빡거리는 것을 막음 = 히스테리시스)
+
+  let model, webcam, maxPredictions;
+  let probBuffer = [];            // 최근 프레임들의 phone 확률 저장
+  let warningOn  = false;         // 현재 경고 상태
 
   async function init() {
-    document.getElementById('status').textContent = '모델 로딩 중...';
+    const startBtn = document.getElementById("startBtn");
+    startBtn.disabled = true;
+    startBtn.innerText = "카메라 켜는 중...";
+
     const modelURL = URL + "model.json";
     const metadataURL = URL + "metadata.json";
 
-    model = await tmPose.load(modelURL, metadataURL);
+    // 모델 로드
+    model = await tmImage.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
 
-    const size = 200;
-    webcam = new tmPose.Webcam(size, size, true);
+    // 학습된 클래스 이름 확인 (콘솔에서 phone / nophone 인지 확인용)
+    console.log("학습된 클래스:", model.getClassLabels());
+
+    // 웹캠 설정 (360x280, 좌우반전)
+    const flip = true;
+    webcam = new tmImage.Webcam(360, 280, flip);
     await webcam.setup();
     await webcam.play();
     window.requestAnimationFrame(loop);
 
-    const canvas = document.getElementById("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    ctx = canvas.getContext("2d");
+    // 화면에 웹캠 붙이기
+    const container = document.getElementById("webcam-container");
+    container.innerHTML = "";
+    container.appendChild(webcam.canvas);
 
-    labelContainer = document.getElementById("label-container");
-    labelContainer.innerHTML = '';
-    for (let i = 0; i < maxPredictions; i++) {
-      labelContainer.appendChild(document.createElement("div"));
-    }
-    document.getElementById('status').textContent = '인식 중...';
+    startBtn.style.display = "none";
   }
 
+  // 클래스 이름 중에서 "핸드폰"을 의미하는 것 찾기
   async function loop() {
     webcam.update();
     await predict();
@@ -207,30 +238,53 @@
   }
 
   async function predict() {
-    const { pose, posenetOutput } = await model.estimatePose(webcam.canvas);
-    const prediction = await model.predict(posenetOutput);
+    const prediction = await model.predict(webcam.canvas);
 
-    for (let i = 0; i < maxPredictions; i++) {
-      const prob = (prediction[i].probability * 100).toFixed(1);
-      const bar = Math.round(prediction[i].probability * 12);
-      const filled = '█'.repeat(bar) + '░'.repeat(12 - bar);
-      labelContainer.childNodes[i].innerHTML =
-        `<span style="color:#39ff14">${prediction[i].className}</span> ` +
-        `<span style="color:#7ec8cc; font-size:12px">${filled} ${prob}%</span>`;
+    // phone 클래스의 확률 꺼내기
+    let phoneProb = 0;
+    let rawTop = prediction[0];
+    for (const p of prediction) {
+      if (p.className === PHONE_CLASS) phoneProb = p.probability;
+      if (p.probability > rawTop.probability) rawTop = p;
     }
-    drawPose(pose);
+
+    // ===== 1단계: 시계열 처리 (최근 WINDOW_SIZE 프레임 평균) =====
+    probBuffer.push(phoneProb);
+    if (probBuffer.length > WINDOW_SIZE) probBuffer.shift();
+    const avgProb = probBuffer.reduce((a, b) => a + b, 0) / probBuffer.length;
+
+    // ===== 2단계: 임계값 + 히스테리시스 =====
+    if (!warningOn && avgProb >= ENTER_THRESH) {
+      warningOn = true;   // 경고 켜기
+    } else if (warningOn && avgProb < EXIT_THRESH) {
+      warningOn = false;  // 경고 끄기
+    }
+    // (ENTER~EXIT 사이 구간에서는 현재 상태 유지 → 깜빡임 방지)
+
+    updateUI(warningOn, avgProb);
   }
 
-  function drawPose(pose) {
-    if (webcam.canvas) {
-      ctx.drawImage(webcam.canvas, 0, 0);
-      if (pose) {
-        const minConf = 0.5;
-        tmPose.drawKeypoints(pose.keypoints, minConf, ctx);
-        tmPose.drawSkeleton(pose.keypoints, minConf, ctx);
-      }
+  function updateUI(isPhone, avgProb) {
+    const root = document.getElementById("root");
+    const goodBox = document.getElementById("goodBox");
+    const warnBox = document.getElementById("warnBox");
+
+    if (isPhone) {
+      root.classList.remove("good");
+      root.classList.add("warn");
+      goodBox.style.display = "none";
+      warnBox.style.display = "block";
+    } else {
+      root.classList.remove("warn");
+      root.classList.add("good");
+      goodBox.style.display = "block";
+      warnBox.style.display = "none";
     }
+
+    document.getElementById("confidence").innerText =
+      `핸드폰 확률(평균 ${probBuffer.length}프레임): ${(avgProb * 100).toFixed(1)}%  |  상태: ${isPhone ? "경고" : "집중"}`;
   }
 </script>
+
 </body>
 </html>
